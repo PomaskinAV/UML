@@ -1,4 +1,4 @@
-#include<iostream>
+ï»¿#include<iostream>
 using namespace std;
 
 #define MAX_TANK_VOLUME 80
@@ -10,6 +10,7 @@ class Tank
 {
 	const unsigned int VOLUME;
 	double fuel_level;
+
 public:
 	const unsigned int get_VOLUME() const
 	{
@@ -19,6 +20,7 @@ public:
 	{
 		return fuel_level;
 	}
+
 	double fill(double fuel)
 	{
 		if (fuel_level + fuel < 0)return fuel_level=0;
@@ -100,7 +102,44 @@ public:
 	}
 };
 
+class Car
+{
+	Tank tank;
+	Engine engine;
+
+public:
+	Car(double engine_consumption, unsigned int tank_volume): engine(engine_consumption), tank(tank_volume)
+	{
+		this->tank.fill(tank_volume);
+		this->engine.set_consumption(engine_consumption);
+		cout << "Car is ready" << this << endl;
+	}
+	~Car()
+	{
+		cout << "Car is gone" << this << endl;
+	}
+	void start()
+	{
+		if (tank.get_fuel_level() > 0)
+		{
+			engine.start();
+		}
+	}
+	void stop()
+	{
+		engine.stop();
+	}
+	void info()const
+	{
+		tank.info();
+		cout << endl;
+		engine.info();
+		cout << endl;
+	}
+};
+
 //#define TANK_CHECK
+//#define ENGINE_CHECK
 
 void main()
 {
@@ -111,12 +150,17 @@ void main()
 	int fuel;
 	while (true)
 	{
-		cout << "Ââåäèòå îáúåì:"; cin >> fuel;
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¾Ð±ÑŠÐµÐ¼:"; cin >> fuel;
 		tank.fill(fuel);
 		tank.info();
 	}
 #endif // TANK_CHECK
 
+#ifdef ENGINE_CHECK
 	Engine engine(9);
 	engine.info();
+#endif // ENGINE_CHECK
+
+	Car car(7, 50);
+	car.info();
 }
