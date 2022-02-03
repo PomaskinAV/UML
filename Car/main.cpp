@@ -72,13 +72,13 @@ public:
 	{
 		return is_started;
 	}
-	bool start()
+	void start()
 	{
-		return is_started = true;
+		is_started = true;
 	}
-	bool stop()
+	void stop()
 	{
-		return is_started = false;
+		is_started = false;
 	}
 	void set_consumption(double consumption)
 	{
@@ -136,8 +136,11 @@ public:
 	}
 	void start_engine()
 	{
-		if (tank.get_fuel_level())engine.start();
-		control.engine_idle_thread = std::thread(&Car::engine_idle, this);
+		if (tank.get_fuel_level())
+		{
+			engine.start();
+			control.engine_idle_thread = std::thread(&Car::engine_idle, this);
+		}
 	}
 	void stop_engine()
 	{
@@ -196,7 +199,15 @@ public:
 		while (driver_inside)
 		{
 			system("CLS");
-			cout << "Fuel level: " << tank.get_fuel_level() << " liters.\n";
+			cout << "Fuel level: " << tank.get_fuel_level() << " liters.";
+			if (tank.get_fuel_level() < 5)
+			{
+				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+				SetConsoleTextAttribute(hConsole, 0x0C);
+				cout << "\tLOW FUEL";
+				SetConsoleTextAttribute(hConsole, 0x07);
+			}
+			cout << endl;
 			cout << "Engine is " << (engine.started() ? "started" : "stoped") << endl;
 			std::this_thread::sleep_for(1s);
 		}
@@ -231,7 +242,7 @@ void main()
 	engine.info();
 #endif // ENGINE_CHECK
 
-	Car bmw(8, 80);
+	Car bmw(20, 80);
 	cout << "Press Enter to get in" << endl;
 	bmw.control_car();
 }
