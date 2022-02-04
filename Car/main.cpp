@@ -56,6 +56,7 @@ public:
 
 class Engine
 {
+	double default_consumption;
 	double consumption;
 	double consumption_per_second;
 	bool is_started;
@@ -91,12 +92,23 @@ public:
 	explicit Engine(double consumption)
 	{
 		set_consumption(consumption);
+		default_consumption = this->consumption;
 		is_started = false;
 		cout << "Engine is ready:\t" << this << endl;
 	}
 	~Engine()
 	{
 		cout << "Engine is gone:\t" << this << endl;
+	}
+	double set_consumption_by_speed(int speed)
+	{
+		set_consumption(get_consumption());
+		if (speed > 0 && speed <= 60)consumption_per_second *= 6.6;
+		else if(speed>60 && speed<=100)consumption_per_second *= 4.6;
+		else if (speed > 100 && speed <= 140)consumption_per_second *= 6.6;
+		else if (speed > 140 && speed <= 200)consumption_per_second *= 8.3;
+		else if (speed > 200 && speed <= 300)consumption_per_second *= 8.3;
+		return consumption_per_second;
 	}
 	void info()const
 	{
@@ -109,6 +121,9 @@ public:
 #define Enter 13
 #define Escape 27
 
+#define MAX_SPEED_LOW 120
+#define MAX_SPEED_HIGH 400
+
 class Car
 {
 	Tank tank;
@@ -120,10 +135,16 @@ class Car
 		std::thread engine_idle_thread;//холостой ход двигателя
 		std::thread free_wheeling_thread;//движение машины по инерции
 	}control;
+	const int MAX_SPEED;
+	int speed;
 public:
-	Car(double engine_consumption, unsigned int tank_volume): engine(engine_consumption), tank(tank_volume)
+	Car(double engine_consumption, unsigned int tank_volume, int max_speed): 
+		engine(engine_consumption), 
+		tank(tank_volume), 
+		MAX_SPEED(max_speed>=MAX_SPEED_LOW&&max_speed<=MAX_SPEED_HIGH ? max_speed : 200)
 	{
 		driver_inside = false; //когда машина сходит с конвеера, в ней нет водителя
+		speed = 0;
 		cout << "Your car is ready to go\t" << this << endl;
 	}
 	~Car()
@@ -171,34 +192,72 @@ public:
 				if (driver_inside)get_out();
 				else get_in();
 				break;
-			case 'F':
-			case 'f'://заправить машину
+			case 'F': case 'f'://заправить машину
 				double fuel;
-				cout << "Введите объем топлива: "; cin >> fuel;
+				cout << "Введите объем топлива: ";
+				cin.clear();
+				cin >> fuel;
 				fill(fuel);
 				break;
-			case 'I':
-			case 'i'://зажигание
+			case 'I': case 'i'://зажигание
 				if (engine.started())stop_engine();
 				else start_engine();
+				break;
+			case 'W':case 'w':
+				if (engine.started() && speed <= MAX_SPEED)speed += 10;
+				if (!control.free_wheeling_thread.joinable())
+				{
+					control.free_wheeling_thread = std::thread(&Car::free_wheeling, this);
+				}
+				std::this_thread::sleep_for(.4s);
+				break;
+			case'S':case 's':
+				if (speed > 0)speed -= 10;
+				if (speed < 0)speed = 0;
+				std::this_thread::sleep_for(.4s);
 				break;
 			case Escape:
 				stop_engine();
 				get_out();
+				if (control.free_wheeling_thread.joinable())
+				{
+					speed = 0;
+					control.free_wheeling_thread.join();
+				}
 				break;
 			}
-
+			if (speed == 0 && control.free_wheeling_thread.joinable())control.free_wheeling_thread.join();
+			engine.set_consumption_by_speed(speed);
 		} while (key != 27);
 	}
 	void engine_idle()
 	{
 		while (engine.started()&&tank.give_fuel(engine.get_consumption_per_second()))std::this_thread::sleep_for(1s);
 	}
+	void free_wheeling()
+	{
+		while (speed)
+		{
+			//свободное торможение, в результате силы трения
+			speed--;
+			if (speed < 0)speed = 0;
+			std::this_thread::sleep_for(1s);
+		}
+	}
 	void control_panel()
 	{
 		while (driver_inside)
 		{
 			system("CLS");
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			for (int i = 0; i < speed / 3; i++)
+			{
+				SetConsoleTextAttribute(hConsole, 0x0A);
+				if (i > 150/3)SetConsoleTextAttribute(hConsole, 0x0C);
+				if (i > 200/3)SetConsoleTextAttribute(hConsole, 0x0E);
+				cout << "|";
+			}
+			cout << endl;
 			cout << "Fuel level: " << tank.get_fuel_level() << " liters.";
 			if (tank.get_fuel_level() < 5)
 			{
@@ -208,10 +267,13 @@ public:
 				SetConsoleTextAttribute(hConsole, 0x07);
 			}
 			cout << endl;
+			cout << "Consuption: " << engine.get_consumption_per_second() << " liters.";
 			cout << "Engine is " << (engine.started() ? "started" : "stoped") << endl;
+			cout << "Speed: " << speed << " km/h.\n";
 			std::this_thread::sleep_for(1s);
 		}
 	}
+	
 	void info()const
 	{
 		tank.info();
@@ -242,7 +304,7 @@ void main()
 	engine.info();
 #endif // ENGINE_CHECK
 
-	Car bmw(20, 80);
+	Car bmw(20, 80, 250);
 	cout << "Press Enter to get in" << endl;
 	bmw.control_car();
 }
