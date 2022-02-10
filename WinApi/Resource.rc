@@ -50,13 +50,18 @@ END
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 309, 176
+IDD_DIALOG1 DIALOGEX 0, 0, 309, 122
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Моё первое диалоговое окно"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,198,155,50,14
-    PUSHBUTTON      "E&xit",IDCANCEL,252,155,50,14
+    EDITTEXT        IDC_EDIT1,7,30,295,14,ES_CENTER | ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,7,59,295,14,ES_CENTER | ES_AUTOHSCROLL
+    LTEXT           "Логин",IDC_STATIC,11,20,21,8
+    LTEXT           "Пароль",IDC_STATIC,7,49,26,8
+    DEFPUSHBUTTON   "OK",IDOK2,198,88,50,14
+    PUSHBUTTON      "E&xit",IDCANCEL2,252,88,50,14
+    PUSHBUTTON      "Copy",IDC_BTN_COPY,7,88,50,14
 END
 
 
@@ -73,7 +78,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 302
         TOPMARGIN, 7
-        BOTTOMMARGIN, 169
+        BOTTOMMARGIN, 115
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -88,6 +93,16 @@ IDD_DIALOG1 AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON                    "apple_juice_drink_fruit_icon_210166.ico"
 
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
